@@ -41,6 +41,22 @@ pipeline {
             }
 }
 
+             stage('sonarqube') {
+        
+            steps { 
+                script {
+
+                    sh '''
+                    /sonar-scanner-5.0.1.3006-linux/bin/sonar-scanner  \
+                    -Dsonar.projectKey=test \
+                    -Dsonar.sources=. \
+                    -Dsonar.host.url=http://192.168.0.3:9000 \
+                    -Dsonar.token=sqp_e13baa7c81ebd1be56dc962367e28ab600e0a5c3
+                    '''
+                }
+            }
+}
+
 
 
 
