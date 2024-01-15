@@ -2,9 +2,6 @@ pipeline {
     agent any
 
 
-    environment {
-        containerId = ''
-    }
 
     stages {
         // Run this stage only if the branch is not 'main'
@@ -86,7 +83,7 @@ pipeline {
             }
             steps { 
                 script {
-                 sh " docker run --ip 192.168.0.20 --network testnet  -d  localhost:6000/asif-flask > container_id.txt "
+                 containerId = sh(script: 'docker run --ip 192.168.0.20 --network testnet  -d  localhost:6000/asif-flask', returnStdout: true).trim()
                 sleep(10)
                 def response = sh(script: 'curl -s 192.168.0.20:7000', returnStdout: true).trim()
                
@@ -100,6 +97,13 @@ pipeline {
                     echo 'test failed'
                     '''
                 }
+                
+                // kill container
+                sh """
+                docker kill ${containerId}
+                docker rm  ${containerId}
+                """
+
                 }
                 
             }
@@ -120,16 +124,5 @@ pipeline {
             }
 }
 
-    }
-    post {
-        always {
-            // run post for cleanup
-
-                sh '''
-                containerId=$(cat container_id.txt)
-                docker kill $containerId
-                docker rm  $containerId
-                '''
-        }
     }
 }
