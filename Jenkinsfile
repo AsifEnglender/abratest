@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+
+    environment {
+        containerId = ''
+    }
+
     stages {
         // Run this stage only if the branch is not 'main'
         stage('code format') {
@@ -81,9 +86,9 @@ pipeline {
             }
             steps { 
                 script {
-                def containerId = sh(script: 'docker run --name --network test samplerun -d -p 5000:5000 localhost:6000/asif-flask', returnStdout: true).trim()
+                 sh " docker run --ip 192.168.0.20 --network testnet  -d  localhost:6000/asif-flask > container_id.txt "
                 sleep(10)
-                def response = sh(script: 'curl -s localhost:5000', returnStdout: true).trim()
+                def response = sh(script: 'curl -s 192.168.0.20:7000', returnStdout: true).trim()
                
                 if (response == 'abra') {
                     sh '''
@@ -96,11 +101,7 @@ pipeline {
                     '''
                 }
                 }
-                // kill container
-                sh '''
-                docker kill ${containerId}
-                docker rm  ${containerId}
-                '''
+                
             }
 }
 
@@ -119,5 +120,16 @@ pipeline {
             }
 }
 
+    }
+    post {
+        always {
+            // run post for cleanup
+
+                sh '''
+                containerId=$(cat container_id.txt)
+                docker kill $containerId
+                docker rm  $containerId
+                '''
+        }
     }
 }
