@@ -7,8 +7,8 @@ pipeline {
                 script {
                     // Build the Docker image
                     sh '''
-                    docker kill  samplerun
-                    docker rm samplerun
+                    docker kill  samplerun || true
+                    docker rm samplerun || true
                     sudo docker build -t localhost:6000/asif-flask .
                     sudo docker run --name samplerun -d -p  5000:5000  localhost:6000/asif-flask
                     
