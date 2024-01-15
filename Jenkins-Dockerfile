@@ -1,14 +1,28 @@
 FROM jenkins/jenkins:lts
 USER root
-RUN apt-get update -qq \
-    && apt-get install -qqy apt-transport-https ca-certificates curl gnupg2 software-properties-common python3-pip
 
+## dependencies for docker and  some extra tools including python3-pip
+RUN apt-get update -qq \
+    && apt-get install -qqy apt-transport-https ca-certificates curl gnupg2 software-properties-common vim wget  python3-pip 
+
+## bug fir for pip inside container + installing necessry python modules for tests
 RUN rm /usr/lib/python3.11/EXTERNALLY-MANAGED &&   python3 -m pip install pytest pylint black flask
+
+
+## install sonar kube cli
+RUN wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-linux.zip?_gl=1*ka0bh0*_gcl_au*MTM1OTg4ODExMC4xNzA1MzUwMTU5*_ga*MTg0NzUxNTYzNS4xNzA1MzUwMTU5*_ga_9JZ0GZ5TC6*MTcwNTM1MDE1OC4xLjEuMTcwNTM1MjA0MS4xOS4wLjA.  -O sonar.zip && \
+unzip sonar.zip \
+&& rm sonar.zip
+
+## install docker
 RUN curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add -
+
 RUN add-apt-repository \
    "deb [arch=amd64] https://download.docker.com/linux/debian \
    $(lsb_release -cs) \
    stable"
+
 RUN apt-get update  -qq \
     && apt-get -y install docker-ce
+
 RUN usermod -aG docker jenkins
