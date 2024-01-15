@@ -12,14 +12,15 @@ pipeline {
                         '''
                     } else {
                         sh '''
-                        echo 'not on main, running lint and code format test'
+                        echo 'not on main, running pylint and black'
                         python3 -m pylint app.py  || true
+                        black --diff app.py
                         '''
                     }
                 }
             }
         }
-        stage('Build container blackbox and push') {
+        stage('Build container  blackbox and push') {
             steps {
                 script {
                     // Build the Docker image
@@ -28,6 +29,11 @@ pipeline {
                     docker rm samplerun || true
                     sudo docker build -t localhost:6000/asif-flask .
                     sudo docker run --name samplerun -d -p 5000:5000 localhost:6000/asif-flask
+                    
+                    
+                    ## unit test
+                    
+                    pytest test_app.py
                     '''
                     sleep(10)
 
