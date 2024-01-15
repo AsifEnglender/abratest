@@ -14,7 +14,8 @@ docker run --network testnet -d -it -p 8080:8080 -p 50000:50000 -v /var/run/dock
 3.configure multibranch pipeline in gui, connect with git and setup periodic scan
 
 4. run sonarqube container
-docker run -d --network testnet --name sonarqube -p 9000:9000 -p 9092:9092 sonarqube
+  docker run -d --network testnet --name sonarqube -p 9000:9000 -p 9092:9092 sonarqube  
+  configure new project  in gui, save the token for jenkinsfile
 
 
 
