@@ -14,12 +14,15 @@ pipeline {
 
                     // Check if we're on the main branch
                     if (env.BRANCH_NAME == 'main') {
-                        sh 'sudo docker push localhost:6000/asif-flask'
+                        sh ''' 
+                        echo " on main branch, hence pusinh container
+                        sudo docker push localhost:6000/asif-flask
+                        '''
                     } else {
                         // For branches other than main, perform a curl request
                         def response = sh(script: 'curl -s localhost:5000', returnStdout: true).trim()
                         if (response == 'abra') {
-                            echo 'ok'
+                            echo 'test worked'
                         } else {
                             echo 'test failed'
                         }
