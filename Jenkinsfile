@@ -9,6 +9,8 @@ pipeline {
                     sh '''
                     sudo docker build -t localhost:6000/asif-flask .
                     sudo docker run --name samplerun -d -p  5000:5000  localhost:6000/asif-flask
+                    sleep(5 * 1000)
+                    
 
                     '''
 
