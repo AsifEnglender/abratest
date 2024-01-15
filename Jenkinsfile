@@ -2,66 +2,122 @@ pipeline {
     agent any
 
     stages {
-        stage('code tests') {
-            steps {
-                script {
-                    // Check if we're on the main branch
-                    if (env.BRANCH_NAME == 'main') {
-                        sh ''' 
-                        echo 'main branch not running code format and lint'
-                        '''
-                    } else {
-                        sh '''
-                        echo 'not on main, running pylint and black'
-                        python3 -m pylint app.py  || true
-                        black --diff app.py
-                        '''
-                    }
+        // Run this stage only if the branch is not 'main'
+        stage('code format') {
+            when {
+                not {
+                    
+                    branch 'main'
                 }
             }
-        }
-        stage('Build container  blackbox and push') {
+            steps { 
+                script {
+                    sh '''
+                    echo 'not on main, running  black'
+                    
+                    black --diff app.py
+                    '''
+                }
+            }
+}
+        // Run this stage only if the branch is not 'main'
+       stage('lint') {
+            when {
+                not {
+                    
+                    branch 'main'
+                }
+            }
+            steps { 
+                script {
+
+                    sh '''
+                    echo 'not on main, running pylint'
+                    python3 -m pylint app.py  || true
+                    '''
+                }
+            }
+}
+
+
+
+
+        //always run this stage 
+        stage('Build  and run container container ') {
             steps {
                 script {
                     // Build the Docker image
                     sh '''
-                    docker kill samplerun || true
-                    docker rm samplerun || true
-                    sudo docker build -t localhost:6000/asif-flask .
-                    sudo docker run --name samplerun -d -p 5000:5000 localhost:6000/asif-flask
+                    docker build -t localhost:6000/asif-flask .
                     
                     
-                    ## unit test
-                    
-                    pytest test_app.py
                     '''
-                    sleep(10)
-
-                    // Check if we're on the main branch
-                    if (env.BRANCH_NAME == 'main') {
-                        sh ''' 
-                        echo " on main branch, hence pushing container"
-                        sudo docker push localhost:6000/asif-flask
-                        '''
-                    } else {
-                        // curl test
-                        def response = sh(script: 'curl -s 172.17.0.1:5000', returnStdout: true).trim()
-                        if (response == 'abra') {
-                            sh '''
-                            echo 'test worked'
-                            sudo docker kill samplerun
-                            sudo docker rm samplerun
-                            '''
-                        } else {
-                            sh '''
-                            echo 'test failed'
-                            sudo docker kill samplerun
-                            sudo docker rm samplerun
-                            '''
-                        }
-                    }
                 }
             }
         }
+
+        //always run this stage         
+        stage('unit test ') {
+            steps {
+                script {
+                    // unit test
+                    
+                    sh '''    
+                    pytest test_app.py
+                    '''
+                    
+                }
+            }
+        }
+
+
+            // curl should return "abra", run this stage not on 'main'
+            stage('black box- curl test') {
+            when {
+                not {
+                    
+                    branch 'main'
+                }
+            }
+            steps { 
+                script {
+                def containerId = sh(script: 'docker run --name --network test samplerun -d -p 5000:5000 localhost:6000/asif-flask', returnStdout: true).trim()
+                sleep(10)
+                def response = sh(script: 'curl -s localhost:5000', returnStdout: true).trim()
+               
+                if (response == 'abra') {
+                    sh '''
+                    echo 'test worked'
+                    
+                    '''
+                } else {
+                    sh '''
+                    echo 'test failed'
+                    '''
+                }
+                }
+                // kill container
+                sh '''
+                docker kill ${containerId}
+                docker rm  ${containerId}
+                '''
+            }
+}
+
+
+           // push , only on main
+            stage('push test') {
+            when {
+                branch 'main'
+            }
+            steps { 
+                sh '''
+                docker push localhost:6000/asif-flask
+
+                '''
+
+            }
+}
+
     }
 }
