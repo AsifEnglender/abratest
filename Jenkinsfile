@@ -19,7 +19,7 @@ pipeline {
                     // Check if we're on the main branch
                     if (env.BRANCH_NAME == 'main') {
                         sh ''' 
-                        echo " on main branch, hence pushing container
+                        echo  'on main branch, hence pushing container'
                         sudo docker push localhost:6000/asif-flask
                         '''
                     } else {
