@@ -20,7 +20,7 @@ pipeline {
                         '''
                     } else {
                         // For branches other than main, perform a curl request
-                        def response = sh(script: 'curl -s localhost:5000', returnStdout: true).trim()
+                        def response = sh(script: 'curl -s 172.17.0.1:5000', returnStdout: true).trim()
                         if (response == 'abra') {
                             sh '''
                             echo 'test worked'
